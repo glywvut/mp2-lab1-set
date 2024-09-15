@@ -96,3 +96,5 @@ ostream &operator<<(ostream &ostr, const TBitField &bf) // вывод
 {
     return ostr;
 }
+
+cout << "Hello world!";// потом убрать
