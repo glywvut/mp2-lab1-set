@@ -6,6 +6,7 @@
 // Битовое поле
 
 #include "tbitfield.h"
+#include "cmath"
 
 // Fake variables used as placeholders in tests
 static const int FAKE_INT = -1;
@@ -13,88 +14,251 @@ static TBitField FAKE_BITFIELD(1);
 
 TBitField::TBitField(int len)
 {
+    if (len < 0) throw "Incorrect lenght";
+    else if (len == 0) {
+        BitLen = 0;
+        MemLen = 0;
+        pMem = nullptr;
+    }
+    else {
+        this->BitLen = len;
+        this->MemLen = static_cast<int>(((len - 1) / (8 * sizeof(TELEM))) + 1);
+        pMem = new TELEM[MemLen];
+        for (int i = 0; i < MemLen; i++)
+            pMem[i] = 0;
+    }
 }
 
-TBitField::TBitField(const TBitField &bf) // конструктор копирования
+TBitField::TBitField(const TBitField& bf) // конструктор копирования 
 {
+    this->BitLen = bf.BitLen;
+    this->MemLen = bf.MemLen;
+    pMem = new TELEM[MemLen];
+    for (int i = 0; i < MemLen; i++)
+        pMem[i] = bf.pMem[i];
 }
 
 TBitField::~TBitField()
 {
+    delete[]pMem;
+    pMem = nullptr;
 }
 
-int TBitField::GetMemIndex(const int n) const // индекс Мем для бита n
+int TBitField::GetMemIndex(const int n) const // индекс Мем для бита n 
 {
-    return FAKE_INT;
+    if (n < 0 || n >= BitLen) throw "Incorrect bit(1)";
+    else return  static_cast<int>(n / (sizeof(TELEM) * 8));
+
 }
 
-TELEM TBitField::GetMemMask(const int n) const // битовая маска для бита n
+TELEM TBitField::GetMemMask(const int n) const // битовая маска для бита n оки  осознать
 {
-    return FAKE_INT;
+    if (n < 0 || n >= BitLen) throw "Incorrect bit(2)";
+    else return static_cast<TELEM>(1 << n % (sizeof(TELEM) * 8));
 }
 
 // доступ к битам битового поля
 
 int TBitField::GetLength(void) const // получить длину (к-во битов)
 {
-  return FAKE_INT;
+    return (BitLen);
 }
 
 void TBitField::SetBit(const int n) // установить бит
 {
+    if ((n < 0) || (n >= BitLen)) throw "Incorrect bit(3)";
+    pMem[GetMemIndex(n)] |= GetMemMask(n);
 }
 
 void TBitField::ClrBit(const int n) // очистить бит
 {
+    if ((n < 0) || (n >= BitLen)) throw "Incorrect bit(4)";
+    pMem[GetMemIndex(n)] &= ~GetMemMask(n);
 }
 
 int TBitField::GetBit(const int n) const // получить значение бита
 {
-  return FAKE_INT;
+    if ((n < 0) || (n >= BitLen)) throw "Incorrect bit(3)";
+    int i = GetMemIndex(n);
+    TELEM mask = GetMemMask(n);
+    int res = pMem[i] & mask;
+    return res;
 }
 
 // битовые операции
 
-TBitField& TBitField::operator=(const TBitField &bf) // присваивание
+TBitField& TBitField::operator=(const TBitField& bf) // присваивание
 {
-    return FAKE_BITFIELD;
+    if (this == &bf) return *this;
+    if (MemLen != bf.MemLen) {
+        delete[] pMem;
+        this->MemLen = bf.MemLen;
+        pMem = new TELEM[MemLen];
+    }
+    this->BitLen = bf.BitLen;
+    for (int i = 0; i < MemLen; i++)
+        pMem[i] = bf.pMem[i];
+    return *this;
 }
 
-int TBitField::operator==(const TBitField &bf) const // сравнение
+int TBitField::operator==(const TBitField& bf) const // сравнение
 {
-  return FAKE_INT;
+    if (BitLen != bf.BitLen) return 0;
+    int tmp = 1;
+    for (int i = 0; i < MemLen; i++) {
+        if (pMem[i] != bf.pMem[i]) {
+            tmp = 0;
+            break;
+        }
+    }
+    return tmp;
 }
 
-int TBitField::operator!=(const TBitField &bf) const // сравнение
+int TBitField::operator!=(const TBitField& bf) const // сравнение
 {
-  return FAKE_INT;
+    if (BitLen != bf.BitLen) return 1;
+    int tmp = 0;
+    for (int i = 0; i < MemLen; i++) {
+        if (pMem[i] != bf.pMem[i]) {
+            tmp = 1;
+            break;
+        }
+    }
+    return tmp;
 }
 
-TBitField TBitField::operator|(const TBitField &bf) // операция "или"
+TBitField TBitField::operator|(const TBitField& bf) // операция "или"
 {
-    return FAKE_BITFIELD;
+    TBitField tmp(0);
+    TBitField bitf(0);
+    if (BitLen <= bf.BitLen) {
+        tmp = bf;
+        bitf = *this;
+    }
+    else
+    {
+        tmp = *this;
+        bitf = bf;
+    }
+    for (int i = 0; i < bitf.MemLen; i++) {
+        tmp.pMem[i] |= bitf.pMem[i];
+    }
+    return tmp;
 }
 
-TBitField TBitField::operator&(const TBitField &bf) // операция "и"
+TBitField TBitField::operator&(const TBitField& bf) // операция "и"
 {
-    return FAKE_BITFIELD;
+    TBitField tmp(0);
+    TBitField bitf(0);
+    if (BitLen <= bf.BitLen) {
+        tmp = bf;
+        bitf = *this;
+    }
+    else
+    {
+        tmp = *this;
+        bitf = bf;
+    }
+    for (int i = 0; i < bitf.MemLen; i++) {
+        tmp.pMem[i] &= bitf.pMem[i];
+    }
+    return tmp;
 }
 
 TBitField TBitField::operator~(void) // отрицание
 {
-    return FAKE_BITFIELD;
+    TBitField tmp(*this);
+    for (int i = 0; i < GetLength(); i++) {
+        if (tmp.GetBit(i) == 0)
+            tmp.SetBit(i);
+        else
+            tmp.ClrBit(i);
+    }
+    return tmp;
 }
 
 // ввод/вывод
 
-istream &operator>>(istream &istr, TBitField &bf) // ввод
+istream& operator>>(istream& istr, TBitField& bf) // ввод
 {
+    int tmp;
+    for (int i = 0; i < bf.BitLen; i++)
+    {
+        istr >> tmp;
+        if (tmp)
+        {
+            bf.SetBit(i);
+        }
+        else
+        {
+            bf.ClrBit(i);
+        }
+    }
     return istr;
 }
 
-ostream &operator<<(ostream &ostr, const TBitField &bf) // вывод
+ostream& operator<<(ostream& ostr, const TBitField& bf) // вывод
 {
+    for (int i = 0; i < bf.BitLen; i++)
+    {
+        if (!bf.GetBit(i))
+        {
+            ostr << 1;
+            continue;
+        }
+        ostr << 0;
+    }
     return ostr;
 }
 
-cout << "Hello world!";// потом убрать
+
+TEST(TSet, one_string_tripple_operation)
+{
+    const int size = 8;
+    TSet set1(size), set2(size), set3(size), set4(size);
+    set1.InsElem(0);
+    set1.InsElem(1);
+    set1.InsElem(2);
+
+    set2.InsElem(2);
+    set2.InsElem(3);
+    set2.InsElem(4);
+
+    set3.InsElem(5);
+    set3.InsElem(6);
+    set3.InsElem(7);
+
+    set1 = set1 + set2 + set3;
+
+    set2.InsElem(0);
+    set2.InsElem(1);
+    set2.InsElem(2);
+    set2.InsElem(3);
+    set2.InsElem(4);
+    set2.InsElem(5);
+    set2.InsElem(6);
+    set2.InsElem(7);
+
+    EXPECT_EQ(set1, set2);
+}
+TEST(TBitField, double_clear_is_zero)
+{
+    TBitField bf(5);
+    int ind = 2;
+    bf.ClrBit(ind);
+    bf.ClrBit(ind);
+
+    EXPECT_EQ(0, bf.GetBit(ind));
+}
+
+TEST(TBitField, fields_tripple_or)
+{
+    TBitField bf1(3), bf2(3), bf3(3), bf4(3);
+    bf1.SetBit(0);
+    bf2.SetBit(1);
+    bf3.SetBit(2);
+    bf4 = ~bf4;
+    bf1 = bf1 | bf2 | bf3;
+
+    EXPECT_EQ(bf4, bf1);
+}
