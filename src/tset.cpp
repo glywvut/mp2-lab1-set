@@ -18,18 +18,10 @@ TSet::TSet(int mp) : BitField(mp)
 }
 
 // конструктор копирования
-TSet::TSet(const TSet& s) : BitField(s.GetMaxPower())
-{
-    this->MaxPower = s.MaxPower;
-    this->BitField = s.BitField;
-}
+ TSet::TSet(const TSet& s) : BitField(s.BitField), MaxPower(s.MaxPower) {}
 
 // конструктор преобразования типа
-TSet::TSet(const TBitField& bf) : BitField(bf.GetLength())
-{
-    MaxPower = bf.GetLength();
-    BitField = bf;
-}
+ TSet::TSet(const TBitField& bf) :  BitField(bf), MaxPower(bf.GetLength()){}
 
 TSet::operator TBitField()
 {
@@ -83,12 +75,8 @@ int TSet::operator!=(const TSet& s) const // сравнение
 
 TSet TSet::operator+(const TSet& s) // объединение
 {
-    int mp = 0;
-    if (MaxPower >= s.MaxPower) mp = MaxPower;
-    mp = s.MaxPower;
-    TSet unification(mp);
-    unification.BitField = BitField | s.BitField;
-    return unification;
+     TSet tmp(BitField | s.BitField);//преобр. типов
+    return tmp;
 }
 
 TSet TSet::operator+(const int Elem) // объединение с элементом
@@ -114,12 +102,8 @@ TSet TSet::operator-(const int Elem) // разность с элементом
 
 TSet TSet::operator*(const TSet& s) // пересечение
 {
-    int mp = 0;
-    if (MaxPower >= s.MaxPower) mp = MaxPower;
-    mp = s.MaxPower;
-    TSet unification(mp);
-    unification.BitField = BitField & s.BitField;
-    return unification;
+     TSet tmp(BitField & s.BitField); //преобр. типов
+    return tmp;
 }
 
 TSet TSet::operator~(void) // дополнение
