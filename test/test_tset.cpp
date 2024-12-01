@@ -2,125 +2,118 @@
 
 #include <gtest.h>
 
-TEST(TSet, can_get_max_power_set)
+class TestTSet : public ::testing::Test
 {
-  const int size = 5;
-  TSet set(size);
+protected:
+	TSet* s1, *s2, *s3;
+	void SetUp()
+	{
+		s1 = new TSet(10);
+		s2 = new TSet(20);
+		s3 = new TSet(10);
+	}
+	void TearDown()
+	{
+		delete s1;
+		delete s2;
+		delete s3;
+	}
+};
 
-  EXPECT_EQ(size, set.GetMaxPower());
+TEST_F(TestTSet, can_get_max_power_set)
+{
+  EXPECT_EQ(10, s1->GetMaxPower());
 }
 
-TEST(TSet, can_insert_non_existing_element)
+TEST_F(TestTSet, can_insert_non_existing_element)
 {
-  const int size = 5, k = 3;
-  TSet set(size);
-  set.InsElem(k);
+	const int k = 3;
+	s1->InsElem(k);
 
-  EXPECT_NE(set.IsMember(k), 0);
+	EXPECT_NE(s1->IsMember(k), 0);
 }
 
-TEST(TSet, can_insert_existing_element)
+TEST_F(TestTSet, can_insert_existing_element)
 {
-  const int size = 5;
   const int k = 3;
-  TSet set(size);
-  set.InsElem(k);
-  set.InsElem(k);
+  s1->InsElem(k);
+  s1->InsElem(k);
 
-  EXPECT_NE(set.IsMember(k), 0);
+  EXPECT_NE(s1->IsMember(k), 0);
 }
 
-TEST(TSet, can_delete_non_existing_element)
+TEST_F(TestTSet, can_delete_non_existing_element)
 {
-  const int size = 5, k = 3;
-  TSet set(size);
-  set.DelElem(k);
+	s1->DelElem(3);
 
-  EXPECT_EQ(set.IsMember(k), 0);
+	EXPECT_EQ(s1->IsMember(3), 0);
 }
 
-TEST(TSet, can_delete_existing_element)
+TEST_F(TestTSet, can_delete_existing_element)
 {
-  const int size = 5, k = 3;
-  TSet set(size);
+  const int k = 3;
 
-  set.InsElem(k);
-  EXPECT_GT(set.IsMember(k), 0);
+  s1->InsElem(k);
+  EXPECT_GT(s1->IsMember(k), 0);
 
-  set.DelElem(k);
-  EXPECT_EQ(set.IsMember(k), 0);
+  s1->DelElem(k);
+  EXPECT_EQ(s1->IsMember(k), 0);
 }
 
-TEST(TSet, compare_two_sets_of_non_equal_sizes)
+TEST_F(TestTSet, compare_two_sets_of_non_equal_sizes)
 {
-  const int size1 = 4, size2 = 6;
-  TSet set1(size1), set2(size2);
-
-  EXPECT_EQ(1, set1 != set2);
+	EXPECT_EQ(1, *s1 != *s2);
 }
 
-TEST(TSet, compare_two_equal_sets)
+TEST_F(TestTSet, compare_two_equal_sets)
 {
-  const int size = 4;
-  TSet set1(size), set2(size);
-  // set1 = set2 = {1, 3}
-  set1.InsElem(1);
-  set1.InsElem(3);
-  set2.InsElem(1);
-  set2.InsElem(3);
+  s1->InsElem(1);
+  s1->InsElem(3);
+  s3->InsElem(1);
+  s3->InsElem(3);
 
-  EXPECT_EQ(set1, set2);
+  EXPECT_EQ(*s1, *s3);
 }
 
-TEST(TSet, compare_two_non_equal_sets)
+TEST_F(TestTSet, compare_two_non_equal_sets)
 {
-  const int size = 4;
-  TSet set1(size), set2(size);
-  // set1 = {1, 3}
-  set1.InsElem(1);
-  set1.InsElem(3);
-  // set2 = {1, 2}
-  set2.InsElem(1);
-  set2.InsElem(2);
+  s1->InsElem(1);
+  s1->InsElem(3);
+  s3->InsElem(1);
+  s3->InsElem(2);
 
-  EXPECT_EQ(1, set1 != set2);
+  EXPECT_EQ(1, *s1 != *s2);
 }
 
-TEST(TSet, can_assign_set_of_equal_size)
+TEST_F(TestTSet, can_assign_set_of_equal_size)
 {
-  const int size = 4;
-  TSet set1(size), set2(size);
-  // set1 = {1, 3}
-  set1.InsElem(1);
-  set1.InsElem(3);
-  set2 = set1;
+  s1->InsElem(1);
+  s1->InsElem(3);
+  *s3 = *s1;
 
-  EXPECT_EQ(set1, set2);
+  EXPECT_EQ(*s1, *s3);
 }
 
-TEST(TSet, can_assign_set_of_greater_size)
+TEST_F(TestTSet, can_assign_set_of_greater_size)
 {
-  const int size1 = 4, size2 = 6;
-  TSet set1(size1), set2(size2);
-  // set1 = {1, 3}
-  set1.InsElem(1);
-  set1.InsElem(3);
-  set2 = set1;
+  s1->InsElem(1);
+  s1->InsElem(3);
+  *s2 = *s1;
 
-  EXPECT_EQ(set1, set2);
+  EXPECT_EQ(*s1, *s2);
 }
 
-TEST(TSet, can_assign_set_of_less_size)
+TEST_F(TestTSet, can_assign_set_of_less_size)
 {
   const int size1 = 6, size2 = 4;
   TSet set1(size1), set2(size2);
   // set1 = {1, 3, 5}
-  set1.InsElem(1);
-  set1.InsElem(3);
-  set1.InsElem(5);
-  set2 = set1;
+  s2->InsElem(1);
+  s2->InsElem(3);
+  s2->InsElem(5);
+  *s1 = *s2;
 
-  EXPECT_EQ(set1, set2);
+  EXPECT_EQ(*s1, *s2);
 }
 
 TEST(TSet, can_insert_non_existing_element_using_plus_operator)
